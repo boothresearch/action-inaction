@@ -23,7 +23,7 @@ packages <-
     "ggplot2", 
     "tidyverse", 
     "corrr", 
-    "corrplot", 
+    "corrplot",
     "PerformanceAnalytics", 
     "Hmisc", 
     "ggstatsplot", 

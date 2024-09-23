@@ -13,34 +13,34 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
-packages <- 
+packages <-
   c(
-    "report", 
-    "dplyr", 
-    "psych", 
-    "ggplot2", 
-    "tidyverse", 
-    "corrr", 
+    "report",
+    "dplyr",
+    "psych",
+    "ggplot2",
+    "tidyverse",
+    "corrr",
     "corrplot",
-    "PerformanceAnalytics", 
-    "Hmisc", 
-    "ggstatsplot", 
-    "jtools", 
-    "metan", 
-    "ggstatsplot", 
-    "ggthemes", 
-    "ggpubr", 
+    "PerformanceAnalytics",
+    "Hmisc",
+    "ggstatsplot",
+    "jtools",
+    "metan",
+    "ggstatsplot",
+    "ggthemes",
+    "ggpubr",
     "apaTables",
-    "insight", 
+    "insight",
     "parameters"
   )
 
 pacman::p_load(packages, character.only = TRUE)
 
 # setting formatting options
-options(scipen=999, digits =3)
+options(scipen = 999, digits = 3)
 set.seed(5423) # Extracted from random.org on 2024-09-23 21:30:29 UTC
 ```
 
@@ -48,103 +48,163 @@ set.seed(5423) # Extracted from random.org on 2024-09-23 21:30:29 UTC
 
 ```{r study1, echo=FALSE}
 
-data1 <- read.csv(file.path("data", "inactionwetrust_study1.csv"), na.strings=c("","NA"))
+
+data1 <- read.csv(file.path("data", "inactionwetrust_study1.csv"),
+                  na.strings = c("", "NA"))
 
 # data cleaning
 ## remove variable descriptions + practice data
-data1 <- data1[-c(1:1),]
-data1 <-  data1 [, c("preference", "competence", "norms", "Q55", "check1",
-                     "check2", "check3", "sex", "Age")] 
+data1 <- data1[-c(1:1), ]
+data1 <-  data1 [, c("preference",
+                     "competence",
+                     "norms",
+                     "Q55",
+                     "check1",
+                     "check2",
+                     "check3",
+                     "sex",
+                     "Age")]
 # rename and summarize descriptives
 data1$preference <- as.numeric(data1$preference)
 data1$competence <- as.numeric(data1$competence)
 data1$normative <- as.numeric(data1$norms)
-data1<-rename(data1, regret = Q55)
+data1 <- rename(data1, regret = Q55)
 data1$regret <- as.numeric(data1$regret)
-data1$age<- as.numeric(data1$Age)
+data1$age <- as.numeric(data1$Age)
 
 summary1 <- data1 %>%
-    select(preference, competence, normative, regret, sex, age) %>% 
-  psych::describe(quant=c(.25,.75)) %>% as_tibble(rownames="rowname")
-knitr::kable(summary1, digits=2, caption = "Summary study 1a", align = "c")
-tablegender1<-table(data1$sex)
-knitr::kable(tablegender1, digits=2, caption = "Summary gender", align = "c")
+  select(preference, competence, normative, regret, sex, age) %>%
+  psych::describe(quant = c(.25, .75)) %>% as_tibble(rownames = "rowname")
+knitr::kable(summary1,
+             digits = 2,
+             caption = "Summary study 1a",
+             align = "c")
+tablegender1 <- table(data1$sex)
+knitr::kable(tablegender1,
+             digits = 2,
+             caption = "Summary gender",
+             align = "c")
 
 
-dplot1 <- data1 %>% select(preference, competence, normative, regret)%>%
-  rename(Preference = preference, Competence = competence, Norms = normative, Regret = regret)%>%
+dplot1 <- data1 %>% select(preference, competence, normative, regret) %>%
+  rename(
+    Preference = preference,
+    Competence = competence,
+    Norms = normative,
+    Regret = regret
+  ) %>%
   gather()
-dplot1$key<-factor(dplot1$key, levels = c("Preference","Competence", "Norms", "Regret"))
+dplot1$key <- factor(dplot1$key,
+                     levels = c("Preference", "Competence", "Norms", "Regret"))
 
 dplot1  %>% ggplot(aes(value)) +
-  facet_wrap(~ key, scales = "free", )+ geom_histogram(binwidth = 1)+theme_apa()+
-  labs(x = "", y = "")+ scale_x_continuous(limits = c(-5, 5))+ ylim(0, 200)
+  facet_wrap( ~ key, scales = "free", ) + geom_histogram(binwidth = 1) +
+  theme_apa() +
+  labs(x = "", y = "") + scale_x_continuous(limits = c(-5, 5)) + ylim(0, 200)
 
 Sa1preferenceplot <- ggstatsplot::gghistostats(
-  data = data1, # data from which variable is to be taken
-  x = preference, # numeric variable
-  xlab = "Preference", # x-axis label
+  data = data1,
+  # data from which variable is to be taken
+  x = preference,
+  # numeric variable
+  xlab = "Preference",
+  # x-axis label
   # title = "Preference", # title for the plot
   #ggtheme = ggthemes::theme_tufte(), # changing default theme
-  test.value = 0, # test value
+  test.value = 0,
+  # test value
   #caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
 )
 Sa1preferenceplot
-ggsave(file.path("output", "Study1a-preference.png"), dpi = 600, scale = 1.7)
+ggsave(file.path("output", "Study1a-preference.png"),
+       dpi = 600,
+       scale = 1.7)
 
 Sa1competenceplot <- ggstatsplot::gghistostats(
-  data = data1, # data from which variable is to be taken
-  x = competence, # numeric variable
-  xlab = "Competence", # x-axis label
+  data = data1,
+  # data from which variable is to be taken
+  x = competence,
+  # numeric variable
+  xlab = "Competence",
+  # x-axis label
   # title = "Competence", # title for the plot
   #ggtheme = ggthemes::theme_tufte(), # changing default theme
-  test.value = 0, # test value
+  test.value = 0,
+  # test value
   #caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
 )
 Sa1competenceplot
-ggsave(file.path("output", "Study1a-competence.png"), dpi = 600, scale = 1.7)
+ggsave(file.path("output", "Study1a-competence.png"),
+       dpi = 600,
+       scale = 1.7)
 
 
 Sa1normativeplot <- ggstatsplot::gghistostats(
-  data = data1, # data from which variable is to be taken
-  x = normative, # numeric variable
-  xlab = "Norms", # x-axis label
+  data = data1,
+  # data from which variable is to be taken
+  x = normative,
+  # numeric variable
+  xlab = "Norms",
+  # x-axis label
   # title = "Norms", # title for the plot
-  #ggtheme = ggthemes::theme_tufte(), # changing default theme
-  test.value = 0, # test value
+  #ggtheme = gg
+  themes::theme_tufte(),
+  # changing default theme
+  test.value = 0,
+  # test value
   #caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
 )
 Sa1normativeplot
-ggsave(file.path("output", "Study1a-norms.png"), dpi = 600, scale = 1.7)
+ggsave(file.path("output", "Study1a-norms.png"),
+       dpi = 600,
+       scale = 1.7)
 
 
 Sa1regretplot <- ggstatsplot::gghistostats(
-  data = data1, # data from which variable is to be taken
-  x = regret, # numeric variable
-  xlab = "Regret", # x-axis label
+  data = data1,
+  # data from which variable is to be taken
+  x = regret,
+  # numeric variable
+  xlab = "Regret",
+  # x-axis label
   # title = "Preference", # title for the plot
   #ggtheme = ggthemes::theme_tufte(), # changing default theme
-  test.value = 0, # test value
+  test.value = 0,
+  # test value
   #caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
-
+  
 )
 Sa1regretplot
-ggsave(file.path("output", "Study1a-regret.png"), dpi = 600, scale = 1.7)
+ggsave(file.path("output", "Study1a-regret.png"),
+       dpi = 600,
+       scale = 1.7)
 
 # two in one
 library(ggpubr)
-ggarrange(Sa1preferenceplot, Sa1competenceplot, Sa1normativeplot, Sa1regretplot, common.legend = TRUE)
-ggsave(file.path("output", "Study1a-4 in one.png"), width = 11, height = 10, dpi = 600, scale = 1)
+ggarrange(
+  Sa1preferenceplot,
+  Sa1competenceplot,
+  Sa1normativeplot,
+  Sa1regretplot,
+  common.legend = TRUE
+)
+ggsave(
+  file.path("output", "Study1a-4 in one.png"),
+  width = 11,
+  height = 10,
+  dpi = 600,
+  scale = 1
+)
 
 
 
-preference<-t.test(data1$preference, mu = 0)
-reportpref1<-report(preference)
+preference <- t.test(data1$preference, mu = 0)
+reportpref1 <- report(preference)
 competence <- t.test(data1$competence, mu = 0)
 report(competence)
-normative<-t.test(data1$normative, mu = 0)
+normative <- t.test(data1$normative, mu = 0)
 report(normative)
-regret<-t.test(data1$regret, mu = 0)
+regret <- t.test(data1$regret, mu = 0)
 report(regret)
 
 ```
@@ -154,103 +214,160 @@ report(regret)
 
 ```{r study 1b, echo=FALSE}
 
+
 data1b <- read.csv(file.path("data", "inactionwetrust_study1b.csv"))
 
 # data cleaning
-data1b <- data1b[-c(1:2),]
+data1b <- data1b[-c(1:2), ]
 
 ## remove variable descriptions + practice data
-data1b <-  data1b [, c("preference", "competence", "normative","Q55",
-                       "check_1", "check_2", "check_3", "gender", "age")]
+data1b <-  data1b [, c(
+  "preference",
+  "competence",
+  "normative",
+  "Q55",
+  "check_1",
+  "check_2",
+  "check_3",
+  "gender",
+  "age"
+)]
 # descriptives
 data1b$preference <- as.numeric(data1b$preference)
 data1b$competence <- as.numeric(data1b$competence)
 data1b$normative <- as.numeric(data1b$normative)
-data1b<-rename(data1b, regret = Q55)
+data1b <- rename(data1b, regret = Q55)
 data1b$regret <- as.numeric(data1b$regret)
-data1b$age<-as.numeric(data1b$age)
+data1b$age <- as.numeric(data1b$age)
 
 summary1b <- data1b %>%
-    select(preference, competence, normative, regret, gender, age) %>% 
-  psych::describe(quant=c(.25,.75)) %>% as_tibble(rownames="rowname")
-knitr::kable(summary1b, digits=2, caption = "Summary descriptives", align = "c")
-tablegender<-table(data1b$gender)
-knitr::kable(tablegender, digits=2, caption = "Summary gender", align = "c")
+  select(preference, competence, normative, regret, gender, age) %>%
+  psych::describe(quant = c(.25, .75)) %>% as_tibble(rownames = "rowname")
+knitr::kable(summary1b,
+             digits = 2,
+             caption = "Summary descriptives",
+             align = "c")
+tablegender <- table(data1b$gender)
+knitr::kable(tablegender,
+             digits = 2,
+             caption = "Summary gender",
+             align = "c")
 
 
-dplot1b <- data1b %>% select(preference, competence, normative, regret)%>%
-  rename(Preference = preference, Competence = competence, Norms = normative, Regret = regret)%>%
+dplot1b <- data1b %>% select(preference, competence, normative, regret) %>%
+  rename(
+    Preference = preference,
+    Competence = competence,
+    Norms = normative,
+    Regret = regret
+  ) %>%
   gather()
-dplot1b$key<-factor(dplot1b$key, levels = c("Preference","Competence", "Norms", "Regret"))
+dplot1b$key <- factor(dplot1b$key,
+                      levels = c("Preference", "Competence", "Norms", "Regret"))
 dplot1b  %>% ggplot(aes(value)) +
-  facet_wrap(~ key, scales = "free")+ geom_histogram(binwidth = 1)+theme_apa()+
-  labs(x = "", y = "")+ scale_x_continuous(limits = c(-5,0, 5))+ ylim(0, 200)
+  facet_wrap( ~ key, scales = "free") + geom_histogram(binwidth = 1) + theme_apa() +
+  labs(x = "", y = "") + scale_x_continuous(limits = c(-5, 0, 5)) + ylim(0, 200)
 
 
 S1bpreferenceplot <- ggstatsplot::gghistostats(
-  data = data1b, # data from which variable is to be taken
-  x = preference, # numeric variable
-  xlab = "Preference", # x-axis label
+  data = data1b,
+  # data from which variable is to be taken
+  x = preference,
+  # numeric variable
+  xlab = "Preference",
+  # x-axis label
   # title = "Preference", # title for the plot
   #ggtheme = ggthemes::theme_tufte(), # changing default theme
-  test.value = 0, # test value
+  test.value = 0,
+  # test value
   #caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
 )
 S1bpreferenceplot
-ggsave(file.path("output", "Study1b-preference.png"), dpi = 600, scale = 1.7)
+ggsave(file.path("output", "Study1b-preference.png"),
+       dpi = 600,
+       scale = 1.7)
 
 S1bcompetenceplot <- ggstatsplot::gghistostats(
-  data = data1b, # data from which variable is to be taken
-  x = competence, # numeric variable
-  xlab = "Competence", # x-axis label
+  data = data1b,
+  # data from which variable is to be taken
+  x = competence,
+  # numeric variable
+  xlab = "Competence",
+  # x-axis label
   # title = "Competence", # title for the plot
   #ggtheme = ggthemes::theme_tufte(), # changing default theme
-  test.value = 0, # test value
+  test.value = 0,
+  # test value
   #caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
 )
 S1bcompetenceplot
-ggsave(file.path("output", "Study1b-competence.png"), dpi = 600, scale = 1.7)
+ggsave(file.path("output", "Study1b-competence.png"),
+       dpi = 600,
+       scale = 1.7)
 
 
 S1bnormativeplot <- ggstatsplot::gghistostats(
-  data = data1b, # data from which variable is to be taken
-  x = normative, # numeric variable
-  xlab = "Norms", # x-axis label
+  data = data1b,
+  # data from which variable is to be taken
+  x = normative,
+  # numeric variable
+  xlab = "Norms",
+  # x-axis label
   # title = "Norms", # title for the plot
   #ggtheme = ggthemes::theme_tufte(), # changing default theme
-  test.value = 0, # test value
+  test.value = 0,
+  # test value
   #caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
 )
 S1bnormativeplot
-ggsave(file.path("output", "Study1b-norms.png"), dpi = 600, scale = 1.7)
+ggsave(file.path("output", "Study1b-norms.png"),
+       dpi = 600,
+       scale = 1.7)
 
 
 S1bregretplot <- ggstatsplot::gghistostats(
-  data = data1b, # data from which variable is to be taken
-  x = regret, # numeric variable
-  xlab = "Regret", # x-axis label
+  data = data1b,
+  # data from which variable is to be taken
+  x = regret,
+  # numeric variable
+  xlab = "Regret",
+  # x-axis label
   # title = "Preference", # title for the plot
   #ggtheme = ggthemes::theme_tufte(), # changing default theme
-  test.value = 0, # test value
+  test.value = 0,
+  # test value
   #caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
 )
 S1bregretplot
-ggsave(file.path("output", "Study1b-regret.png"), dpi = 600, scale = 1.7)
+ggsave(file.path("output", "Study1b-regret.png"),
+       dpi = 600,
+       scale = 1.7)
 
 # two in one
 library(ggpubr)
-ggarrange(S1bpreferenceplot, S1bcompetenceplot, S1bnormativeplot, S1bregretplot, common.legend = TRUE)
-ggsave(file.path("output", "Study1b-4 in one.png"), width = 11, height = 10, dpi = 600, scale = 1)
+ggarrange(
+  S1bpreferenceplot,
+  S1bcompetenceplot,
+  S1bnormativeplot,
+  S1bregretplot,
+  common.legend = TRUE
+)
+ggsave(
+  file.path("output", "Study1b-4 in one.png"),
+  width = 11,
+  height = 10,
+  dpi = 600,
+  scale = 1
+)
 
-preferenceb<-t.test(data1b$preference, mu = 0)
+preferenceb <- t.test(data1b$preference, mu = 0)
 report(preferenceb)
 competenceb <- t.test(data1b$competence, mu = 0)
 report(competenceb)
-normativeb<-t.test(data1b$normative, mu = 0)
+normativeb <- t.test(data1b$normative, mu = 0)
 report(normativeb)
-regretb<-t.test(data1b$regret, mu = 0)
+regretb <- t.test(data1b$regret, mu = 0)
 report(regretb)
-
 
 ```
 
@@ -258,23 +375,39 @@ report(regretb)
 
 ```{r study 2, echo=FALSE}
 
-data2 <- read.csv(file.path("data", "inactionwetrust_study2.csv"),sep = ";" )
+
+data2 <- read.csv(file.path("data", "inactionwetrust_study2.csv"), sep = ";")
 # data cleaning
 # data2 <- data2[-c(1:2),]
 ## remove variable descriptions + practice data
-data2 <-  data2 [, c("expect", "preference", "competence", "descriptive.norms", "Injunctive", "regret", "joy", "check", "gender", "age", "condition")]
-data2 <- mutate_all(data2, function(x) as.numeric(as.character(x)))
+data2 <-  data2 [, c(
+  "expect",
+  "preference",
+  "competence",
+  "descriptive.norms",
+  "Injunctive",
+  "regret",
+  "joy",
+  "check",
+  "gender",
+  "age",
+  "condition"
+)]
+data2 <- mutate_all(data2, function(x)
+  as.numeric(as.character(x)))
 
 # Manipuation check
 # check question about to what extent participants expect the advisors to change their behaviour (based on prior outcomes) : negative prior outcome > no prior outcome > positive prior outcome
 # 1 = absent/control, 2 = positive 3 = negative
 
-datasetexpect12 <-data2 %>% select (expect, condition) %>% filter (condition == 1 | condition == 2)
-check1<-t.test(datasetexpect12$expect~datasetexpect12$condition)
+datasetexpect12 <- data2 %>% select (expect, condition) %>% filter (condition == 1 |
+                                                                      condition == 2)
+check1 <- t.test(datasetexpect12$expect ~ datasetexpect12$condition)
 check1
 
-datasetexpect13 <-data2 %>% select (expect, condition) %>% filter (condition == 1 | condition == 3)
-check3<-t.test(datasetexpect13$expect~datasetexpect13$condition)
+datasetexpect13 <- data2 %>% select (expect, condition) %>% filter (condition == 1 |
+                                                                      condition == 3)
+check3 <- t.test(datasetexpect13$expect ~ datasetexpect13$condition)
 check3
 
 ```
@@ -285,121 +418,209 @@ The check is successful.
 
 ```{r descriptives2}
 
+
 S2Control <- data2 %>% filter (condition == 1)
 
 summary2 <- S2Control %>%
-    select(preference, competence, descriptive.norms, Injunctive, regret, joy, age, gender) %>% 
-  psych::describe(quant=c(.25,.75)) %>% as_tibble(rownames="rowname")
-knitr::kable(summary2, digits=2, caption = "Summary descriptives", align = "c")
-tablegender2<-table(S2Control$gender)
-knitr::kable(tablegender2, digits=2, caption = "Summary gender", align = "c")
+  select(preference,
+         competence,
+         descriptive.norms,
+         Injunctive,
+         regret,
+         joy,
+         age,
+         gender) %>%
+  psych::describe(quant = c(.25, .75)) %>% as_tibble(rownames = "rowname")
+knitr::kable(summary2,
+             digits = 2,
+             caption = "Summary descriptives",
+             align = "c")
+tablegender2 <- table(S2Control$gender)
+knitr::kable(tablegender2,
+             digits = 2,
+             caption = "Summary gender",
+             align = "c")
 
-dplot2 <- S2Control %>% 
-  select(preference, competence, descriptive.norms, Injunctive, regret, joy) %>%
-  rename(Preference = preference, Competence = competence,
-         "Descriptive norms" = descriptive.norms,
-         "Injunctive norms" = Injunctive, Regret = regret, Joy = joy)%>%
+dplot2 <- S2Control %>%
+  select(preference,
+         competence,
+         descriptive.norms,
+         Injunctive,
+         regret,
+         joy) %>%
+  rename(
+    Preference = preference,
+    Competence = competence,
+    "Descriptive norms" = descriptive.norms,
+    "Injunctive norms" = Injunctive,
+    Regret = regret,
+    Joy = joy
+  ) %>%
   gather()
-dplot2$key<-factor(dplot2$key, levels = c("Preference","Competence",
-                                          "Descriptive norms", "Injunctive norms",
-                                          "Regret", "Joy"))
+dplot2$key <- factor(
+  dplot2$key,
+  levels = c(
+    "Preference",
+    "Competence",
+    "Descriptive norms",
+    "Injunctive norms",
+    "Regret",
+    "Joy"
+  )
+)
 
-dplot2 %>% ggplot(aes(value)) + 
-  facet_wrap(~ key, scales = "free")+ geom_histogram(binwidth = 1)+theme_apa()+
-  labs(x = "", y = "")+ scale_x_continuous(limits = c(-5,0,5))+ ylim(0, 250) 
+dplot2 %>% ggplot(aes(value)) +
+  facet_wrap( ~ key, scales = "free") + geom_histogram(binwidth = 1) + theme_apa() +
+  labs(x = "", y = "") + scale_x_continuous(limits = c(-5, 0, 5)) + ylim(0, 250)
 
 
 S2preferenceplot <- ggstatsplot::gghistostats(
-  data = S2Control, # data from which variable is to be taken
-  x = preference, # numeric variable
-  xlab = "Preference", # x-axis label
+  data = S2Control,
+  # data from which variable is to be taken
+  x = preference,
+  # numeric variable
+  xlab = "Preference",
+  # x-axis label
   # title = "Preference", # title for the plot
   #ggtheme = ggthemes::theme_tufte(), # changing default theme
-  test.value = 0, # test value
+  test.value = 0,
+  # test value
   #caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
 )
 S2preferenceplot
-ggsave(file.path("output", "Study2-preference.png"), dpi = 600, scale = 1.7)
+ggsave(file.path("output", "Study2-preference.png"),
+       dpi = 600,
+       scale = 1.7)
 
 S2competenceplot <- ggstatsplot::gghistostats(
-  data = S2Control, # data from which variable is to be taken
-  x = competence, # numeric variable
-  xlab = "Competence", # x-axis label
+  data = S2Control,
+  # data from which variable is to be taken
+  x = competence,
+  # numeric variable
+  xlab = "Competence",
+  # x-axis label
   # title = "Competence", # title for the plot
   #ggtheme = ggthemes::theme_tufte(), # changing default theme
-  test.value = 0, # test value
+  test.value = 0,
+  # test value
   #caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
 )
 S2competenceplot
-ggsave(file.path("output", "Study2-competence.png"), dpi = 600, scale = 1.7)
+ggsave(file.path("output", "Study2-competence.png"),
+       dpi = 600,
+       scale = 1.7)
 
 
 S2desnormativeplot <- ggstatsplot::gghistostats(
-  data = S2Control, # data from which variable is to be taken
-  x = descriptive.norms, # numeric variable
-  xlab = "Descriptive norms", # x-axis label
+  data = S2Control,
+  # data from which variable is to be taken
+  x = descriptive.norms,
+  # numeric variable
+  xlab = "Descriptive norms",
+  # x-axis label
   # title = "Norms", # title for the plot
   #ggtheme = ggthemes::theme_tufte(), # changing default theme
-  test.value = 0, # test value
+  test.value = 0,
+  # test value
   #caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
 )
 S2desnormativeplot
-ggsave(file.path("output", "Study2-descriptive-norms.png"), dpi = 600, scale = 1.7)
+ggsave(
+  file.path("output", "Study2-descriptive-norms.png"),
+  dpi = 600,
+  scale = 1.7
+)
 
 S2injnormativeplot <- ggstatsplot::gghistostats(
-  data = S2Control, # data from which variable is to be taken
-  x = Injunctive, # numeric variable
-  xlab = "Injunctive norms", # x-axis label
+  data = S2Control,
+  # data from which variable is to be taken
+  x = Injunctive,
+  # numeric variable
+  xlab = "Injunctive norms",
+  # x-axis label
   # title = "Norms", # title for the plot
   #ggtheme = ggthemes::theme_tufte(), # changing default theme
-  test.value = 0, # test value
+  test.value = 0,
+  # test value
   #caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
 )
 S2injnormativeplot
-ggsave(file.path("output", "Study2-injunctive-norms.png"), dpi = 600, scale = 1.7)
+ggsave(
+  file.path("output", "Study2-injunctive-norms.png"),
+  dpi = 600,
+  scale = 1.7
+)
 
 S2regretplot <- ggstatsplot::gghistostats(
-  data = S2Control, # data from which variable is to be taken
-  x = regret, # numeric variable
-  xlab = "Regret", # x-axis label
+  data = S2Control,
+  # data from which variable is to be taken
+  x = regret,
+  # numeric variable
+  xlab = "Regret",
+  # x-axis label
   # title = "Preference", # title for the plot
   #ggtheme = ggthemes::theme_tufte(), # changing default theme
-  test.value = 0, # test value
+  test.value = 0,
+  # test value
   #caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
 )
 S2regretplot
-ggsave(file.path("output", "Study2-regret.png"), dpi = 600, scale = 1.7)
+ggsave(file.path("output", "Study2-regret.png"),
+       dpi = 600,
+       scale = 1.7)
 
 S2joyplot <- ggstatsplot::gghistostats(
-  data = S2Control, # data from which variable is to be taken
-  x = joy, # numeric variable
-  xlab = "Joy", # x-axis label
+  data = S2Control,
+  # data from which variable is to be taken
+  x = joy,
+  # numeric variable
+  xlab = "Joy",
+  # x-axis label
   # title = "Preference", # title for the plot
   #ggtheme = ggthemes::theme_tufte(), # changing default theme
-  test.value = 0, # test value
+  test.value = 0,
+  # test value
   #caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
 )
 S2joyplot
-ggsave(file.path("output", "Study2-joy.png"), dpi = 600, scale = 1.7)
+ggsave(file.path("output", "Study2-joy.png"),
+       dpi = 600,
+       scale = 1.7)
 
 
 # six in one
 library(ggpubr)
-ggarrange(S2preferenceplot, S2competenceplot, S2desnormativeplot, S2injnormativeplot, S2regretplot, S2joyplot, ncol = 2, nrow	= 3, common.legend = TRUE)
-ggsave(file.path("output", "Study2-control-6 in one.png"), width = 12, height = 18, dpi = 600, scale = 1)
+ggarrange(
+  S2preferenceplot,
+  S2competenceplot,
+  S2desnormativeplot,
+  S2injnormativeplot,
+  S2regretplot,
+  S2joyplot,
+  ncol = 2,
+  nrow	= 3,
+  common.legend = TRUE
+)
+ggsave(
+  file.path("output", "Study2-control-6 in one.png"),
+  width = 12,
+  height = 18,
+  dpi = 600,
+  scale = 1
+)
 
 
-preference2<-t.test(S2Control$preference, mu = 0)
+preference2 <- t.test(S2Control$preference, mu = 0)
 report(preference2)
 competence2 <- t.test(S2Control$competence, mu = 0)
 report(competence2)
-descriptive.norms2<-t.test(S2Control$descriptive.norms, mu = 0)
+descriptive.norms2 <- t.test(S2Control$descriptive.norms, mu = 0)
 report(descriptive.norms2)
-Injunctive2<-t.test(S2Control$Injunctive, mu = 0)
+Injunctive2 <- t.test(S2Control$Injunctive, mu = 0)
 report(Injunctive2)
-regret2<-t.test(S2Control$regret, mu = 0)
+regret2 <- t.test(S2Control$regret, mu = 0)
 report(regret2)
-joy2<-t.test(S2Control$joy, mu = 0)
+joy2 <- t.test(S2Control$joy, mu = 0)
 report(joy2)
 
 
@@ -416,7 +637,14 @@ Test for no prior outcomes or positive prior outcomes:
 
 ```{r diff between condition}
 
-data2$conditionrecode <- recode(data2$condition, '1' = "Control", '2' = "Positive", '3' = "Negative", .default = NA_character_)
+
+data2$conditionrecode <- recode(
+  data2$condition,
+  '1' = "Control",
+  '2' = "Positive",
+  '3' = "Negative",
+  .default = NA_character_
+)
 
 S2anovapreference <- ggstatsplot::ggbetweenstats(
   data = data2,
@@ -425,8 +653,11 @@ S2anovapreference <- ggstatsplot::ggbetweenstats(
   xlab = "Condition",
   ylab = "Preference",
   point.path = FALSE,
-  point.args = list(size = 4, alpha = 0.2, 
-                    position = ggplot2::position_jitterdodge(jitter.width = 0.4, jitter.height = 0.4)),
+  point.args = list(
+    size = 4,
+    alpha = 0.2,
+    position = ggplot2::position_jitterdodge(jitter.width = 0.4, jitter.height = 0.4)
+  ),
   # centrality.point.args = list(size = 7, alpha = 0.7, color="#b30000"),
   # ggtheme = ggstatsplot::theme_ggstatsplot(),
   # violin.args = list(width = 1, alpha = 0.2),
@@ -436,7 +667,11 @@ S2anovapreference <- ggstatsplot::ggbetweenstats(
   # effsize.type = "d"
 )
 S2anovapreference
-ggsave(file.path("output", "Study2-anova-preference.png"), dpi = 600, scale = 1)
+ggsave(
+  file.path("output", "Study2-anova-preference.png"),
+  dpi = 600,
+  scale = 1
+)
 
 S2anovacompetence <- ggstatsplot::ggbetweenstats(
   data = data2,
@@ -445,8 +680,11 @@ S2anovacompetence <- ggstatsplot::ggbetweenstats(
   xlab = "Condition",
   ylab = "Competence",
   point.path = FALSE,
-  point.args = list(size = 4, alpha = 0.2, 
-                    position = ggplot2::position_jitterdodge(jitter.width = 0.4, jitter.height = 0.4)),
+  point.args = list(
+    size = 4,
+    alpha = 0.2,
+    position = ggplot2::position_jitterdodge(jitter.width = 0.4, jitter.height = 0.4)
+  ),
   # centrality.point.args = list(size = 7, alpha = 0.7, color="#b30000"),
   # ggtheme = ggstatsplot::theme_ggstatsplot(),
   # violin.args = list(width = 1, alpha = 0.2),
@@ -456,7 +694,11 @@ S2anovacompetence <- ggstatsplot::ggbetweenstats(
   # effsize.type = "d"
 )
 S2anovacompetence
-ggsave(file.path("output", "Study2-anova-competence.png"), dpi = 600, scale = 1)
+ggsave(
+  file.path("output", "Study2-anova-competence.png"),
+  dpi = 600,
+  scale = 1
+)
 
 S2anovadescnorms <- ggstatsplot::ggbetweenstats(
   data = data2,
@@ -465,8 +707,11 @@ S2anovadescnorms <- ggstatsplot::ggbetweenstats(
   xlab = "Condition",
   ylab = "Descriptive norms",
   point.path = FALSE,
-  point.args = list(size = 4, alpha = 0.2, 
-                    position = ggplot2::position_jitterdodge(jitter.width = 0.4, jitter.height = 0.4)),
+  point.args = list(
+    size = 4,
+    alpha = 0.2,
+    position = ggplot2::position_jitterdodge(jitter.width = 0.4, jitter.height = 0.4)
+  ),
   # centrality.point.args = list(size = 7, alpha = 0.7, color="#b30000"),
   # ggtheme = ggstatsplot::theme_ggstatsplot(),
   # violin.args = list(width = 1, alpha = 0.2),
@@ -476,7 +721,11 @@ S2anovadescnorms <- ggstatsplot::ggbetweenstats(
   # effsize.type = "d"
 )
 S2anovadescnorms
-ggsave(file.path("output", "Study2-anova-descnorms.png"), dpi = 600, scale = 1)
+ggsave(
+  file.path("output", "Study2-anova-descnorms.png"),
+  dpi = 600,
+  scale = 1
+)
 
 
 S2anovainjnorms <- ggstatsplot::ggbetweenstats(
@@ -486,8 +735,11 @@ S2anovainjnorms <- ggstatsplot::ggbetweenstats(
   xlab = "Condition",
   ylab = "Injunctive norms",
   point.path = FALSE,
-  point.args = list(size = 4, alpha = 0.2, 
-                    position = ggplot2::position_jitterdodge(jitter.width = 0.4, jitter.height = 0.4)),
+  point.args = list(
+    size = 4,
+    alpha = 0.2,
+    position = ggplot2::position_jitterdodge(jitter.width = 0.4, jitter.height = 0.4)
+  ),
   # centrality.point.args = list(size = 7, alpha = 0.7, color="#b30000"),
   # ggtheme = ggstatsplot::theme_ggstatsplot(),
   # violin.args = list(width = 1, alpha = 0.2),
@@ -497,7 +749,11 @@ S2anovainjnorms <- ggstatsplot::ggbetweenstats(
   # effsize.type = "d"
 )
 S2anovainjnorms
-ggsave(file.path("output", "Study2-anova-injnorms.png"), dpi = 600, scale = 1)
+ggsave(
+  file.path("output", "Study2-anova-injnorms.png"),
+  dpi = 600,
+  scale = 1
+)
 
 S2anovaregret <- ggstatsplot::ggbetweenstats(
   data = data2,
@@ -506,8 +762,11 @@ S2anovaregret <- ggstatsplot::ggbetweenstats(
   xlab = "Condition",
   ylab = "Regret",
   point.path = FALSE,
-  point.args = list(size = 4, alpha = 0.2, 
-                    position = ggplot2::position_jitterdodge(jitter.width = 0.4, jitter.height = 0.4)),
+  point.args = list(
+    size = 4,
+    alpha = 0.2,
+    position = ggplot2::position_jitterdodge(jitter.width = 0.4, jitter.height = 0.4)
+  ),
   # centrality.point.args = list(size = 7, alpha = 0.7, color="#b30000"),
   # ggtheme = ggstatsplot::theme_ggstatsplot(),
   # violin.args = list(width = 1, alpha = 0.2),
@@ -517,7 +776,9 @@ S2anovaregret <- ggstatsplot::ggbetweenstats(
   # effsize.type = "d"
 )
 S2anovaregret
-ggsave(file.path("output", "Study2-anova-regret.png"), dpi = 600, scale = 1)
+ggsave(file.path("output", "Study2-anova-regret.png"),
+       dpi = 600,
+       scale = 1)
 
 S2anovajoy <- ggstatsplot::ggbetweenstats(
   data = data2,
@@ -526,8 +787,11 @@ S2anovajoy <- ggstatsplot::ggbetweenstats(
   xlab = "Condition",
   ylab = "Joy",
   point.path = FALSE,
-  point.args = list(size = 4, alpha = 0.2, 
-                    position = ggplot2::position_jitterdodge(jitter.width = 0.4, jitter.height = 0.4)),
+  point.args = list(
+    size = 4,
+    alpha = 0.2,
+    position = ggplot2::position_jitterdodge(jitter.width = 0.4, jitter.height = 0.4)
+  ),
   # centrality.point.args = list(size = 7, alpha = 0.7, color="#b30000"),
   # ggtheme = ggstatsplot::theme_ggstatsplot(),
   # violin.args = list(width = 1, alpha = 0.2),
@@ -537,25 +801,44 @@ S2anovajoy <- ggstatsplot::ggbetweenstats(
   # effsize.type = "d"
 )
 S2anovajoy
-ggsave(file.path("output", "Study2-anova-joy.png"), dpi = 600, scale = 1)
+ggsave(file.path("output", "Study2-anova-joy.png"),
+       dpi = 600,
+       scale = 1)
 
 # six in one
 library(ggpubr)
-ggarrange(S2anovapreference, S2anovacompetence, S2anovadescnorms, S2anovainjnorms, S2anovaregret, S2anovajoy)
-ggsave(file.path("output", "Study2-anova-6 in one.png"), width = 15, height = 10, dpi = 600, scale = 1)
+ggarrange(
+  S2anovapreference,
+  S2anovacompetence,
+  S2anovadescnorms,
+  S2anovainjnorms,
+  S2anovaregret,
+  S2anovajoy
+)
+ggsave(
+  file.path("output", "Study2-anova-6 in one.png"),
+  width = 15,
+  height = 10,
+  dpi = 600,
+  scale = 1
+)
 
 
-datasetexpect12 <-data2 %>% select (condition, preference, competence, Injunctive, descriptive.norms) %>% filter (condition <3)
+datasetexpect12 <- data2 %>% select (condition,
+                                     preference,
+                                     competence,
+                                     Injunctive,
+                                     descriptive.norms) %>% filter (condition < 3)
 
 
 
-preference12<-t.test(datasetexpect12$preference, mu = 0)
+preference12 <- t.test(datasetexpect12$preference, mu = 0)
 report(preference12)
-competence12<-t.test(datasetexpect12$competence, mu = 0)
+competence12 <- t.test(datasetexpect12$competence, mu = 0)
 report(competence12)
-Injunctive12<-t.test(datasetexpect12$Injunctive, mu = 0)
+Injunctive12 <- t.test(datasetexpect12$Injunctive, mu = 0)
 report(Injunctive12)
-descriptive.norms12<-t.test(datasetexpect12$descriptive.norms, mu = 0)
+descriptive.norms12 <- t.test(datasetexpect12$descriptive.norms, mu = 0)
 report(descriptive.norms12)
 
 ```
@@ -568,18 +851,20 @@ Test for Negative prior outcomes:
 
 ```{r negative condition}
 
-datasetexpect3 <-data2 %>% select (condition, preference, competence, Injunctive, descriptive.norms) %>% filter (condition ==3)
+datasetexpect3 <- data2 %>% select (condition,
+                                    preference,
+                                    competence,
+                                    Injunctive,
+                                    descriptive.norms) %>% filter (condition == 3)
 
-preference3<-t.test(datasetexpect3$preference, mu = 0)
+preference3 <- t.test(datasetexpect3$preference, mu = 0)
 report(preference3)
-competence3<-t.test(datasetexpect3$competence, mu = 0)
+competence3 <- t.test(datasetexpect3$competence, mu = 0)
 report(competence3)
-Injunctive3<-t.test(datasetexpect3$Injunctive, mu = 0)
+Injunctive3 <- t.test(datasetexpect3$Injunctive, mu = 0)
 report(Injunctive3)
-descriptive.norms3<-t.test(datasetexpect3$descriptive.norms, mu = 0)
+descriptive.norms3 <- t.test(datasetexpect3$descriptive.norms, mu = 0)
 report(descriptive.norms3)
- 
-
 
 ```
 
@@ -602,11 +887,13 @@ corr_ci(data1)
 For study 1b
 ```{r correlation1b}
 
-corrdf1b<-data1b%>%select (competence, preference, normative, regret)%>%na.omit(corrdf1b)
-correlate1b<-cor(corrdf1b, method = "pearson")
-rcorr(as.matrix(corrdf1b), type="pearson")
+
+corrdf1b <- data1b %>% select (competence, preference, normative, regret) %>%
+  na.omit(corrdf1b)
+correlate1b <- cor(corrdf1b, method = "pearson")
+rcorr(as.matrix(corrdf1b), type = "pearson")
 corrplot(correlate1b)
-chart.Correlation(corrdf1b, histogram=TRUE, pch=19)
+chart.Correlation(corrdf1b, histogram = TRUE, pch = 19)
 cor.test(data1$competence, data1$preference)
 corr_ci(data1b)
 
@@ -617,9 +904,29 @@ corr_ci(data1b)
 For study 2
 ```{r correlation2}
 
-nopriorcorrdf<-data2%>%select (regret, joy, competence, Injunctive, descriptive.norms, preference, condition)%>%filter (condition == 1) %>% na.omit(nopriorcorrdf)%>%select(-condition)
-positivepriorcorrdf<-data2%>%select (regret, joy, competence, Injunctive, descriptive.norms, preference, condition)%>%filter (condition == 2) %>% na.omit(corrdf)%>%select(-condition)
-negativepriorcorrdf<-data2%>%select (regret, joy, competence, Injunctive, descriptive.norms, preference, condition)%>%filter (condition == 3) %>% na.omit(negativepriorcorrdf)%>%select(-condition)
+
+nopriorcorrdf <- data2 %>% select (regret,
+                                   joy,
+                                   competence,
+                                   Injunctive,
+                                   descriptive.norms,
+                                   preference,
+                                   condition) %>% filter (condition == 1) %>% na.omit(nopriorcorrdf) %>% select(-condition)
+positivepriorcorrdf <- data2 %>% select (regret,
+                                         joy,
+                                         competence,
+                                         Injunctive,
+                                         descriptive.norms,
+                                         preference,
+                                         condition) %>% filter (condition == 2) %>% na.omit(corrdf) %>% select(-condition)
+negativepriorcorrdf <- data2 %>% select (regret,
+                                         joy,
+                                         competence,
+                                         Injunctive,
+                                         descriptive.norms,
+                                         preference,
+                                         condition) %>% filter (condition == 3) %>% na.omit(negativepriorcorrdf) %>%
+  select(-condition)
 
 # these correlations are made using correlation package, who provide more details on the correlations
 #nopriorcorrelate<-correlation::correlation(nopriorcorrdf, method = "pearson")
@@ -627,9 +934,26 @@ negativepriorcorrdf<-data2%>%select (regret, joy, competence, Injunctive, descri
 #negativepriorcorrelate<-correlation::correlation(negativepriorcorrdf, method = "pearson")
 
 
-apa.cor.table(nopriorcorrdf, filename=file.path("output", "nopriorcorrelation.doc"),show.conf.interval = TRUE, show.sig.stars = FALSE, landscape = TRUE)
-apa.cor.table(positivepriorcorrdf, filename=file.path("output", "positivepriorcorrelation.doc"),show.conf.interval = TRUE, show.sig.stars = FALSE, landscape = TRUE)
-apa.cor.table(negativepriorcorrdf, filename=file.path("output", "negativepriorcorrelation.doc"),show.conf.interval = TRUE, show.sig.stars = FALSE, landscape = TRUE)
-
+apa.cor.table(
+  nopriorcorrdf,
+  filename = file.path("output", "nopriorcorrelation.doc"),
+  show.conf.interval = TRUE,
+  show.sig.stars = FALSE,
+  landscape = TRUE
+)
+apa.cor.table(
+  positivepriorcorrdf,
+  filename = file.path("output", "positivepriorcorrelation.doc"),
+  show.conf.interval = TRUE,
+  show.sig.stars = FALSE,
+  landscape = TRUE
+)
+apa.cor.table(
+  negativepriorcorrdf,
+  filename = file.path("output", "negativepriorcorrelation.doc"),
+  show.conf.interval = TRUE,
+  show.sig.stars = FALSE,
+  landscape = TRUE
+)
 
 ```

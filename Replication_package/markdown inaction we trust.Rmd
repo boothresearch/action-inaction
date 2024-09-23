@@ -41,6 +41,7 @@ pacman::p_load(packages, character.only = TRUE)
 
 # setting formatting options
 options(scipen=999, digits =3)
+set.seed(5423) # Extracted from random.org on 2024-09-23 21:30:29 UTC
 ```
 
 # Study 1a

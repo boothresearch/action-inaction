@@ -23,6 +23,7 @@ invisible(lapply(list.of.packages, library, character.only = TRUE))
 
 # setting formatting options
 options(scipen=999, digits =3)
+set.seed(8598)
 
 ```
 

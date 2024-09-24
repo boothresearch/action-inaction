@@ -34,7 +34,10 @@ packages <-
     "ggpubr",
     "apaTables",
     "insight",
-    "parameters"
+    "parameters",
+    "knitr",
+    "janitor",
+    "ggstatsplot"
   )
 
 pacman::p_load(packages, character.only = TRUE)
@@ -44,143 +47,143 @@ options(scipen = 999, digits = 3)
 set.seed(5423) # Extracted from random.org on 2024-09-23 21:30:29 UTC
 ```
 
+# Functions 
+
+```{r}
+fig_histogram <- function(study_no, var_name, var_lab) {
+  
+  df <- get(paste0("data", study_no))
+  var_name <- ensym(var_name)
+  
+  gghistostats(
+    data = df,
+    x = var_name,
+    xlab = var_lab,
+    test.value = 0
+  )
+
+  ggsave(
+    file.path(
+      "output", 
+      paste0("Study", study_no, "-" , var_name, ".png")
+    ),
+    dpi = 600,
+    scale = 1.7
+  )
+}
+  
+```
+
 # Study 1a
 
-```{r study1, echo=FALSE}
+## Process data
 
+The data from Study 1a was acquired from ... . 
 
-data1 <- read.csv(file.path("data", "inactionwetrust_study1.csv"),
-                  na.strings = c("", "NA"))
+```{r study1}
+data1a_raw <- 
+  read.csv(
+    file.path("data", "inactionwetrust_study1.csv"),
+    na.strings = c("", "NA")
+  )
+```
 
-# data cleaning
-## remove variable descriptions + practice data
-data1 <- data1[-c(1:1), ]
-data1 <-  data1 [, c("preference",
-                     "competence",
-                     "norms",
-                     "Q55",
-                     "check1",
-                     "check2",
-                     "check3",
-                     "sex",
-                     "Age")]
-# rename and summarize descriptives
-data1$preference <- as.numeric(data1$preference)
-data1$competence <- as.numeric(data1$competence)
-data1$normative <- as.numeric(data1$norms)
-data1 <- rename(data1, regret = Q55)
-data1$regret <- as.numeric(data1$regret)
-data1$age <- as.numeric(data1$Age)
+The first row of the data is a description of the columns, so we will remove it.
+That will allow R to identify the correct data types.
 
-summary1 <- data1 %>%
-  select(preference, competence, normative, regret, sex, age) %>%
-  psych::describe(quant = c(.25, .75)) %>% as_tibble(rownames = "rowname")
-knitr::kable(summary1,
-             digits = 2,
-             caption = "Summary study 1a",
-             align = "c")
-tablegender1 <- table(data1$sex)
-knitr::kable(tablegender1,
-             digits = 2,
-             caption = "Summary gender",
-             align = "c")
+```{r}
+data1a <-
+  data1a_raw %>%
+  slice(-1) %>%
+  type_convert(.)
+```
 
+The data set also includes practices data, which is removed in the code chunk below.
 
-dplot1 <- data1 %>% select(preference, competence, normative, regret) %>%
-  rename(
-    Preference = preference,
-    Competence = competence,
-    Norms = normative,
-    Regret = regret
+```{r}
+data1a <-  
+  data1a %>%
+  select(
+    preference,
+    competence,
+    norms,
+    Q55,
+    check1,
+    check2,
+    check3,
+    sex,
+    Age
   ) %>%
-  gather()
-dplot1$key <- factor(dplot1$key,
-                     levels = c("Preference", "Competence", "Norms", "Regret"))
+  rename(
+    regret = Q55,
+    age = Age,
+    normative = norms,
+    gender = sex
+  )
+```
 
-dplot1  %>% ggplot(aes(value)) +
-  facet_wrap( ~ key, scales = "free", ) + geom_histogram(binwidth = 1) +
-  theme_apa() +
-  labs(x = "", y = "") + scale_x_continuous(limits = c(-5, 5)) + ylim(0, 200)
+## Explore the data
 
-Sa1preferenceplot <- ggstatsplot::gghistostats(
-  data = data1,
-  # data from which variable is to be taken
-  x = preference,
-  # numeric variable
-  xlab = "Preference",
-  # x-axis label
-  # title = "Preference", # title for the plot
-  #ggtheme = ggthemes::theme_tufte(), # changing default theme
-  test.value = 0,
-  # test value
-  #caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
-)
-Sa1preferenceplot
-ggsave(file.path("output", "Study1a-preference.png"),
-       dpi = 600,
-       scale = 1.7)
+```{r}
+data1a %>%
+  select(preference, competence, normative, regret, gender, age) %>%
+  psych::describe(quant = c(.25, .75)) %>% 
+  as_tibble(rownames = "rowname") %>%
+  kable(
+    digits = 2,
+    caption = "Summary study 1a",
+    align = "c"
+  )
+```
 
-Sa1competenceplot <- ggstatsplot::gghistostats(
-  data = data1,
-  # data from which variable is to be taken
-  x = competence,
-  # numeric variable
-  xlab = "Competence",
-  # x-axis label
-  # title = "Competence", # title for the plot
-  #ggtheme = ggthemes::theme_tufte(), # changing default theme
-  test.value = 0,
-  # test value
-  #caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
-)
-Sa1competenceplot
-ggsave(file.path("output", "Study1a-competence.png"),
-       dpi = 600,
-       scale = 1.7)
+```{r}
+data1a %>% 
+  tabyl(gender)
+```
 
+## Figure 1
 
-Sa1normativeplot <- ggstatsplot::gghistostats(
-  data = data1,
-  # data from which variable is to be taken
-  x = normative,
-  # numeric variable
-  xlab = "Norms",
-  # x-axis label
-  # title = "Norms", # title for the plot
-  #ggtheme = gg
-  themes::theme_tufte(),
-  # changing default theme
-  test.value = 0,
-  # test value
-  #caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
-)
-Sa1normativeplot
-ggsave(file.path("output", "Study1a-norms.png"),
-       dpi = 600,
-       scale = 1.7)
+```{r}
+Sa1preferenceplot <- 
+  gghistostats(
+    data = data1,
+    x = preference,
+    xlab = "Preference",
+    test.value = 0
+  )
+```
 
+```{r}
+Sa1competenceplot <- 
+  gghistostats(
+    data = data1,
+    x = competence,
+    xlab = "Competence",
+    test.value = 0
+  )
+```
 
-Sa1regretplot <- ggstatsplot::gghistostats(
-  data = data1,
-  # data from which variable is to be taken
-  x = regret,
-  # numeric variable
-  xlab = "Regret",
-  # x-axis label
-  # title = "Preference", # title for the plot
-  #ggtheme = ggthemes::theme_tufte(), # changing default theme
-  test.value = 0,
-  # test value
-  #caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
-  
-)
-Sa1regretplot
-ggsave(file.path("output", "Study1a-regret.png"),
-       dpi = 600,
-       scale = 1.7)
+```{r}
+Sa1normativeplot <- 
+  gghistostats(
+    data = data1,
+    x = norms,
+    xlab = "Norms",
+    test.value = 0
+  )
+```
 
-# two in one
-library(ggpubr)
+```{r}
+Sa1regretplot <- 
+  gghistostats(
+    data = data1,
+    x = regret,
+    xlab = "Regret",
+    test.value = 0
+  )
+```
+
+```{r}
 ggarrange(
   Sa1preferenceplot,
   Sa1competenceplot,
@@ -188,6 +191,7 @@ ggarrange(
   Sa1regretplot,
   common.legend = TRUE
 )
+
 ggsave(
   file.path("output", "Study1a-4 in one.png"),
   width = 11,
@@ -195,164 +199,120 @@ ggsave(
   dpi = 600,
   scale = 1
 )
+```
 
+## T-tests
 
-
-preference <- t.test(data1$preference, mu = 0)
-reportpref1 <- report(preference)
-competence <- t.test(data1$competence, mu = 0)
-report(competence)
-normative <- t.test(data1$normative, mu = 0)
-report(normative)
-regret <- t.test(data1$regret, mu = 0)
-report(regret)
-
+```{r}
+data1a %>%
+  select(preference, competence, norms, regret) %>%
+  as.list %>%
+  map(~ t.test(., mu = 0) %>% report)
 ```
 
 
 # Study 1b
 
-```{r study 1b, echo=FALSE}
+## Process data
 
+The data from Study 1b was acquired from ... . The column names are slightly different from those in Study 1a, as is the data structure. This is why they are processed separately.
 
-data1b <- read.csv(file.path("data", "inactionwetrust_study1b.csv"))
+```{r study 1b}
+data1b_raw <- read_csv(file.path("data", "inactionwetrust_study1b.csv"))
+```
 
-# data cleaning
-data1b <- data1b[-c(1:2), ]
+The first two rows of the data are a description of the columns, so we will remove it.
+That will allow R to identify the correct data types.
 
-## remove variable descriptions + practice data
-data1b <-  data1b [, c(
-  "preference",
-  "competence",
-  "normative",
-  "Q55",
-  "check_1",
-  "check_2",
-  "check_3",
-  "gender",
-  "age"
-)]
-# descriptives
-data1b$preference <- as.numeric(data1b$preference)
-data1b$competence <- as.numeric(data1b$competence)
-data1b$normative <- as.numeric(data1b$normative)
-data1b <- rename(data1b, regret = Q55)
-data1b$regret <- as.numeric(data1b$regret)
-data1b$age <- as.numeric(data1b$age)
+```{r}
+data1b <- 
+  data1b_raw %>%
+  slice(-c(1:2)) %>%
+  type_convert(.)
+```
 
-summary1b <- data1b %>%
-  select(preference, competence, normative, regret, gender, age) %>%
-  psych::describe(quant = c(.25, .75)) %>% as_tibble(rownames = "rowname")
-knitr::kable(summary1b,
-             digits = 2,
-             caption = "Summary descriptives",
-             align = "c")
-tablegender <- table(data1b$gender)
-knitr::kable(tablegender,
-             digits = 2,
-             caption = "Summary gender",
-             align = "c")
+The data set also includes practice data, which is removed in the code chunk below.
 
+```{r}
+data1b <-  
+  data1b %>%
+  select(
+    preference,
+    competence,
+    norms = normative,
+    regret = Q55,
+    check1 = check_1,
+    check2 = check_2,
+    check3 = check_3,
+    gender,
+    age
+  ) 
+```
 
-dplot1b <- data1b %>% select(preference, competence, normative, regret) %>%
-  rename(
-    Preference = preference,
-    Competence = competence,
-    Norms = normative,
-    Regret = regret
-  ) %>%
-  gather()
-dplot1b$key <- factor(dplot1b$key,
-                      levels = c("Preference", "Competence", "Norms", "Regret"))
-dplot1b  %>% ggplot(aes(value)) +
-  facet_wrap( ~ key, scales = "free") + geom_histogram(binwidth = 1) + theme_apa() +
-  labs(x = "", y = "") + scale_x_continuous(limits = c(-5, 0, 5)) + ylim(0, 200)
+## Explore data 
 
+```{r}
+data1b %>%
+  select(preference, competence, norms, regret, gender, age) %>%
+  psych::describe(quant = c(.25, .75)) %>% 
+  as_tibble(rownames = "rowname") %>%
+  kable(
+    digits = 2,
+    caption = "Summary study 1a",
+    align = "c"
+  )
+``` 
 
-S1bpreferenceplot <- ggstatsplot::gghistostats(
-  data = data1b,
-  # data from which variable is to be taken
-  x = preference,
-  # numeric variable
-  xlab = "Preference",
-  # x-axis label
-  # title = "Preference", # title for the plot
-  #ggtheme = ggthemes::theme_tufte(), # changing default theme
-  test.value = 0,
-  # test value
-  #caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
-)
-S1bpreferenceplot
-ggsave(file.path("output", "Study1b-preference.png"),
-       dpi = 600,
-       scale = 1.7)
+```{r}
+data1b %>% tabyl(gender)
+```
 
-S1bcompetenceplot <- ggstatsplot::gghistostats(
-  data = data1b,
-  # data from which variable is to be taken
-  x = competence,
-  # numeric variable
-  xlab = "Competence",
-  # x-axis label
-  # title = "Competence", # title for the plot
-  #ggtheme = ggthemes::theme_tufte(), # changing default theme
-  test.value = 0,
-  # test value
-  #caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
-)
-S1bcompetenceplot
-ggsave(file.path("output", "Study1b-competence.png"),
-       dpi = 600,
-       scale = 1.7)
+## Figure 2
 
+```{r}
+S1bpreferenceplot <- 
+  gghistostats(
+    data = data1b,
+    x = preference,
+    xlab = "Preference",
+    test.value = 0
+  )
 
-S1bnormativeplot <- ggstatsplot::gghistostats(
-  data = data1b,
-  # data from which variable is to be taken
-  x = normative,
-  # numeric variable
-  xlab = "Norms",
-  # x-axis label
-  # title = "Norms", # title for the plot
-  #ggtheme = ggthemes::theme_tufte(), # changing default theme
-  test.value = 0,
-  # test value
-  #caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
-)
-S1bnormativeplot
-ggsave(file.path("output", "Study1b-norms.png"),
-       dpi = 600,
-       scale = 1.7)
+S1bcompetenceplot <- 
+  gghistostats(
+    data = data1b,
+    x = competence,
+    xlab = "Competence",
+    test.value = 0
+  )
 
+S1bnormativeplot <- 
+  gghistostats(
+    data = data1b,
+    x = norms,
+    xlab = "Norms",
+    test.value = 0
+  )
 
-S1bregretplot <- ggstatsplot::gghistostats(
-  data = data1b,
-  # data from which variable is to be taken
-  x = regret,
-  # numeric variable
-  xlab = "Regret",
-  # x-axis label
-  # title = "Preference", # title for the plot
-  #ggtheme = ggthemes::theme_tufte(), # changing default theme
-  test.value = 0,
-  # test value
-  #caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
-)
-S1bregretplot
-ggsave(file.path("output", "Study1b-regret.png"),
-       dpi = 600,
-       scale = 1.7)
+S1bregretplot <- 
+  gghistostats(
+    data = data1b,
+    x = regret,
+    xlab = "Regret",
+    test.value = 0
+  )
 
-# two in one
-library(ggpubr)
-ggarrange(
-  S1bpreferenceplot,
-  S1bcompetenceplot,
-  S1bnormativeplot,
-  S1bregretplot,
-  common.legend = TRUE
-)
+combined_plot <-
+  ggarrange(
+    S1bpreferenceplot,
+    S1bcompetenceplot,
+    S1bnormativeplot,
+    S1bregretplot,
+    common.legend = TRUE
+  )
+
 ggsave(
+  combined_plot,
   file.path("output", "Study1b-4 in one.png"),
   width = 11,
   height = 10,
@@ -360,15 +320,16 @@ ggsave(
   scale = 1
 )
 
-preferenceb <- t.test(data1b$preference, mu = 0)
-report(preferenceb)
-competenceb <- t.test(data1b$competence, mu = 0)
-report(competenceb)
-normativeb <- t.test(data1b$normative, mu = 0)
-report(normativeb)
-regretb <- t.test(data1b$regret, mu = 0)
-report(regretb)
+combined_plot
+```
 
+## T-tests
+
+```{r}
+data1b %>%
+  select(preference, competence, norms, regret) %>%
+  as.list %>%
+  map(~ t.test(., mu = 0) %>% report)
 ```
 
 # Study 2
